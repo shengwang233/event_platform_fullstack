@@ -25,7 +25,6 @@ import { UploadButton } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
 import { createEvent, updateEvent } from "@/lib/actions/event.actions";
 import { IEvent } from "@/lib/database/models/event.model";
-import UpdateEvent from "@/app/(root)/events/[id]/update/page";
 
 type EventFormProps = {
   userId: string;
@@ -77,15 +76,15 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
       }
 
       try {
-        console.log("Here")
+        console.log("Here");
         const updatedEvent = await updateEvent({
           userId,
-          event: { ...values, _id: eventId },
+          event: { ...values, imageUrl: uploadedImageUrl, _id: eventId },
           path: `/events/${eventId}`,
         });
+        console.log("1", updatedEvent);
 
         if (updatedEvent) {
-          console.log("1", updatedEvent);
           form.reset();
           router.push(`/events/${updatedEvent._id}`);
         }
