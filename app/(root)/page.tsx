@@ -1,33 +1,16 @@
 import Collection from "@/components/shared/Collection";
 import SignUpForm from "@/components/shared/SignUpForm";
 import { Button } from "@/components/ui/button";
+import { getAllEvents } from "@/lib/actions/event.actions";
 import { IEvent } from "@/lib/database/models/event.model";
 import Image from "next/image";
 import Link from "next/link";
 
 export default async function Home() {
-  async function getEvents(): Promise<IEvent[]> {
-    try {
-      const response = await fetch(
-        `https://courage-culture-hmahhsc4abegcfhy.canadacentral-01.azurewebsites.net/api/event`,
-        {
-          cache: "no-store",
-        }
-      );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
-      const events = await response.json();
-      console.log("Events fetched successfully:", events);
-      return events;
-    } catch (error) {
-      console.error("Error fetching events:", error);
-      throw error; // Re-throw the error if you want calling code to handle it
-    }
-  }
-  const events = await getEvents();
+  const events = await getAllEvents({ query: "", limit: 6, page: 1 })
+  console.log(events)
 
   return (
     <main>
@@ -59,7 +42,7 @@ export default async function Home() {
           Search CategoryFilter
         </div>
         <Collection
-          data={events}
+          data={events?.data}
           emptyTitle="No Events Found"
           emptyStateSubtext="Come back later"
           collectionType="All_Events"

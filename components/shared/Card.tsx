@@ -4,6 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { DeleteConfirmation } from "./DeleteConfirmation";
 
 type CardProps = {
   event: IEvent;
@@ -12,9 +13,9 @@ type CardProps = {
 };
 
 const Card = async ({ event, hasOrderLink, hidePrice }: CardProps) => {
-  const { userId } = (await auth()) as { userId: string };
-
-  //   const isEventCreator = userId === event.organizer._id.toString();
+  const { sessionClaims } = await auth();
+  const userId = sessionClaims?.userId as string;
+  const isEventCreator = userId === event.organizerId._id.toString();
 
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
@@ -25,7 +26,7 @@ const Card = async ({ event, hasOrderLink, hidePrice }: CardProps) => {
       />
       {/* IS EVENT CREATOR ... */}
 
-      {!hidePrice && (
+      {isEventCreator && !hidePrice && (
         <div className="absolute right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
           <Link href={`/events/${event._id}/update`}>
             <Image
@@ -35,6 +36,7 @@ const Card = async ({ event, hasOrderLink, hidePrice }: CardProps) => {
               height={20}
             />
           </Link>
+          <DeleteConfirmation eventId={event._id} />
         </div>
       )}
 
@@ -44,13 +46,11 @@ const Card = async ({ event, hasOrderLink, hidePrice }: CardProps) => {
             <span className="p-semibold-14 w-min rounded-full bg-green-100 px-4 py-1 text-green-60">
               {event.isFree ? "FREE" : `$${event.price}`}
             </span>
-            <p className="p-semibold-14 w-min rounded-full bg-grey-500/10 px-4 py-1 text-grey-500 line-clamp-1"></p>
           </div>
         )}
 
         <p className="p-medium-16 p-medium-18 text-grey-500">
-          {/* {formatDateTime(event.startDateTime).dateTime} */}
-          2025-01-01 5:00pm
+          {formatDateTime(event.startDate).dateTime}
         </p>
 
         <Link href={`/events/${event._id}`}>
@@ -61,8 +61,7 @@ const Card = async ({ event, hasOrderLink, hidePrice }: CardProps) => {
 
         <div className="flex-between w-full">
           <p className="p-medium-14 md:p-medium-16 text-grey-600">
-            {/* {event.organizer.firstName} {event.organizer.lastName} */}
-            Oak Children Football Club
+            {event.organizerId.firstName} {event.organizerId.lastName}
           </p>
 
           {hasOrderLink && (

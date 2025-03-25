@@ -23,14 +23,26 @@ import { Checkbox } from "../ui/checkbox";
 import "react-datepicker/dist/react-datepicker.css";
 import { UploadButton } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
+import { createEvent } from "@/lib/actions/event.actions";
+import { IEvent } from "@/lib/database/models/event.model";
 
 type EventFormProps = {
   userId: string;
   type: "Create" | "Update";
+  event?: IEvent;
+  eventId?: string;
 };
 
-const EventForm = ({ userId, type }: EventFormProps) => {
-  const initialValues = eventDefaultValues;
+const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
+  const initialValues =
+    event && type === "Update"
+      ? {
+          ...event,
+          startDate: new Date(event.startDate),
+
+          endDate: new Date(event.endDate),
+        }
+      : eventDefaultValues;
   const router = useRouter();
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
@@ -39,52 +51,24 @@ const EventForm = ({ userId, type }: EventFormProps) => {
 
   const isFree = form.watch("isFree");
 
-  const [Files, setFiles] = useState<File[]>([]);
-
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
+    const eventData = values;
+    let uploadedImageUrl = values.imageUrl;
+
     if (type === "Create") {
       try {
-        const response = await fetch(
-          "https://courage-culture-hmahhsc4abegcfhy.canadacentral-01.azurewebsites.net/api/event",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...values,
-              userId,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const newEvent = await createEvent({
+          event: values,
+          userId,
+          path: "/profile",
+        });
+        if (newEvent) {
+          form.reset();
+          router.push(`/events/${newEvent._id}`);
         }
-
-        const result = await response.json();
-        console.log("Event created successfully:", result);
-        console.log(
-          "JSON Test",
-          JSON.stringify({
-            ...values,
-            userId,
-          })
-        );
-
-        form.reset();
-
-        // if (result.eventId) {
-        //   router.push(`/events/${result.eventId}`);
-        // } else {
-        //   console.error("Event ID not found in response");
-        // }
-      } catch (error) {
-        console.error("Error creating event:", error);
-
-        alert("Failed to create event. Please try again.");
-      }
+      } catch (error) {}
     }
+    console.log("event form value", values);
   }
 
   return (
@@ -104,23 +88,6 @@ const EventForm = ({ userId, type }: EventFormProps) => {
                     placeholder="Event Title"
                     {...field}
                     className="input-field"
-                  />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormControl>
-                  <Dropdown
-                    onChangeHandler={field.onChange}
-                    value={field.value}
                   />
                 </FormControl>
 
@@ -194,7 +161,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
                     onClientUploadComplete={(res) => {
                       if (res && res[0]) {
                         const uploadedUrl = res[0].url;
-                        field.onChange(uploadedUrl); // 更新表单的imageUrl值
+                        field.onChange(uploadedUrl);
                         alert("Upload Completed");
                       }
                       alert("Upload Completed");
