@@ -23,8 +23,9 @@ import { Checkbox } from "../ui/checkbox";
 import "react-datepicker/dist/react-datepicker.css";
 import { UploadButton } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
-import { createEvent } from "@/lib/actions/event.actions";
+import { createEvent, updateEvent } from "@/lib/actions/event.actions";
 import { IEvent } from "@/lib/database/models/event.model";
+import UpdateEvent from "@/app/(root)/events/[id]/update/page";
 
 type EventFormProps = {
   userId: string;
@@ -38,9 +39,8 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
     event && type === "Update"
       ? {
           ...event,
-          startDate: new Date(event.startDate),
-
-          endDate: new Date(event.endDate),
+          startDateTime: new Date(event.startDate),
+          endDateTime: new Date(event.endDate),
         }
       : eventDefaultValues;
   const router = useRouter();
@@ -52,6 +52,7 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
   const isFree = form.watch("isFree");
 
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
+    console.log("click");
     const eventData = values;
     let uploadedImageUrl = values.imageUrl;
 
@@ -68,7 +69,32 @@ const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
         }
       } catch (error) {}
     }
-    console.log("event form value", values);
+
+    if (type === "Update") {
+      if (!eventId) {
+        router.back();
+        return;
+      }
+
+      try {
+        console.log("Here")
+        const updatedEvent = await updateEvent({
+          userId,
+          event: { ...values, _id: eventId },
+          path: `/events/${eventId}`,
+        });
+
+        if (updatedEvent) {
+          console.log("1", updatedEvent);
+          form.reset();
+          router.push(`/events/${updatedEvent._id}`);
+        }
+
+        console.log("2", updatedEvent);
+      } catch (error) {
+        console.log(error);
+      }
+    }
   }
 
   return (

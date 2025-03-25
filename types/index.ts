@@ -43,7 +43,6 @@ export type UpdateEventParams = {
     location: string;
     startDateTime: Date;
     endDateTime: Date;
-    categoryId: string;
     price: string;
     isFree: boolean;
     url: string;

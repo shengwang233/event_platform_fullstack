@@ -100,3 +100,26 @@ export const deleteEvent = async ({ eventId, path }: DeleteEventParams) => {
     console.log(error);
   }
 };
+
+export async function updateEvent({ userId, event, path }: UpdateEventParams) {
+  try {
+    await connectToDatabase();
+
+    const eventToUpdate = await Event.findById(event._id);
+    if (!eventToUpdate || eventToUpdate.organizerId.toHexString() !== userId) {
+      throw new Error("Unauthorized or event not found");
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(
+      event._id,
+      { ...event },
+      { new: true }
+    );
+    revalidatePath(path);
+    console.log(updateEvent);
+
+    return JSON.parse(JSON.stringify(updatedEvent));
+  } catch (error) {
+    handleError(error);
+  }
+}
