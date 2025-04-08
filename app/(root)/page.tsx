@@ -6,10 +6,9 @@ import { IEvent } from "@/lib/database/models/event.model";
 import Image from "next/image";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
 export default async function Home() {
-
-
-  const events = await getAllEvents({ query: "", limit: 6, page: 1 })
+  const events = await getAllEvents({ query: "", limit: 6, page: 1 });
 
   return (
     <main>
