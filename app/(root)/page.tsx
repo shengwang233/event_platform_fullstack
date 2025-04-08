@@ -10,7 +10,6 @@ export default async function Home() {
 
 
   const events = await getAllEvents({ query: "", limit: 6, page: 1 })
-  console.log(events)
 
   return (
     <main>

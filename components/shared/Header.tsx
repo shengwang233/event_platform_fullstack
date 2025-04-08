@@ -1,9 +1,11 @@
+"use client";
 import {
   SignedIn,
   SignedOut,
   SignInButton,
   SignUpButton,
   UserButton,
+  useUser,
 } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +15,9 @@ import NavItems from "./NavItems";
 import MobileNav from "./MobileNav";
 
 const Header = () => {
+  const { user, isLoaded } = useUser();
+  const userType = user?.unsafeMetadata?.UserType;
+  console.log(userType);
   return (
     <header className="w-full border-b">
       <div className="wrapper flex items-center justify-between">
@@ -29,19 +34,20 @@ const Header = () => {
         </div>
 
         {/* for desktop navbar*/}
-        <SignedIn>
-          <nav className="md:flex-between hidden w-full max-w-xs">
-            <NavItems></NavItems>
-          </nav>
-        </SignedIn>
-
+        {isLoaded && userType === "host" && (
+          <SignedIn>
+            <nav className="md:flex-between hidden w-full max-w-xs">
+              <NavItems></NavItems>
+            </nav>
+          </SignedIn>
+        )}
         <div className="flex w-32 justify-end gap-3">
           <SignedIn>
             <UserButton />
           </SignedIn>
-          <Button asChild className="rounded-full" size={"lg"}>
+          {/* <Button asChild className="rounded-full" size={"lg"}>
             <Link href={"/login"}>SIGN IN</Link>
-          </Button>
+          </Button> */}
 
           <SignedOut>
             <Button asChild className="rounded-full" size={"lg"}>
